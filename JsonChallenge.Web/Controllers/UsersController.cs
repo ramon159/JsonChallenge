@@ -15,6 +15,7 @@ using AutoMapper.QueryableExtensions;
 using System.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using System.Web.Http.OData;
 
 namespace JsonChallenge.Web.Controllers
 {
@@ -73,6 +74,7 @@ namespace JsonChallenge.Web.Controllers
         }
 
         // GET: api/Users
+        [EnableQuery]
         [HttpGet("Superusers")]
         public async Task<IActionResult> GetSuperUsers()
         {
