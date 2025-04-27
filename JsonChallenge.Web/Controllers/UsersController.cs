@@ -67,7 +67,7 @@ namespace JsonChallenge.Web.Controllers
             return Ok(new ApiPostReponse() {
                 Message = "Arquivo recebido com sucesso",
                 Count = users.Count,
-                ExecutationTimeMs = sw.ElapsedMilliseconds,
+                ExecutationTimeMs = sw.Elapsed,
                 TimeStamp = DateTime.UtcNow
             });
         }
@@ -86,7 +86,7 @@ namespace JsonChallenge.Web.Controllers
 
             return Ok(new ApiResponseWithData<dynamic>() { 
                 Data = result.Take(100),
-                ExecutationTimeMs = sw.ElapsedMilliseconds,
+                ExecutationTimeMs = sw.Elapsed,
                 TimeStamp = DateTime.UtcNow 
             });
         }
@@ -109,7 +109,7 @@ namespace JsonChallenge.Web.Controllers
             return Ok(new ApiResponseWithData<dynamic>()
             {
                 Data = result,
-                ExecutationTimeMs = sw.ElapsedMilliseconds,
+                ExecutationTimeMs = sw.Elapsed,
                 TimeStamp = DateTime.UtcNow
             });
         }
@@ -137,7 +137,7 @@ namespace JsonChallenge.Web.Controllers
             return Ok(new ApiResponseWithData<dynamic>()
             {
                 Data = result,
-                ExecutationTimeMs = sw.ElapsedMilliseconds,
+                ExecutationTimeMs = sw.Elapsed,
                 TimeStamp = DateTime.UtcNow
             });
         }
@@ -165,7 +165,7 @@ namespace JsonChallenge.Web.Controllers
             return Ok(new ApiResponseWithData<dynamic>()
             {
                 Data = result,
-                ExecutationTimeMs = sw.ElapsedMilliseconds,
+                ExecutationTimeMs = sw.Elapsed,
                 TimeStamp = DateTime.UtcNow
             });
         }

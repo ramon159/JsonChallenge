@@ -7,7 +7,7 @@ namespace JsonChallenge.Web.Models
         [JsonPropertyOrder(-1)]
         public DateTimeOffset TimeStamp { get; set; }
         [JsonPropertyOrder(-1)]
-        public long ExecutationTimeMs { get; set; }
+        public object ExecutationTimeMs { get; set; }
     }
     public class ApiPostReponse : ApiReponse
     {
