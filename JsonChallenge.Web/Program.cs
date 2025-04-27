@@ -1,4 +1,10 @@
 
+using JsonChallenge.Web.Data;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+using Z.EntityFramework.Extensions;
+
 namespace JsonChallenge.Web
 {
     public class Program
@@ -13,7 +19,18 @@ namespace JsonChallenge.Web
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddDbContext<ApplicationDbContext>();
 
+            builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+
+            builder.Services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = int.MaxValue;
+            });
+            var serviceProvider = builder.Services.BuildServiceProvider();
+
+            EntityFrameworkManager.ContextFactory = context =>
+                    serviceProvider.GetService<ApplicationDbContext>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -22,7 +39,6 @@ namespace JsonChallenge.Web
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

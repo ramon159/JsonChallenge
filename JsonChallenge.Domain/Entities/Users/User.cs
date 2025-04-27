@@ -1,32 +1,31 @@
-﻿
-public class User
+﻿namespace JsonChallenge.Domain.Entities.Users;
+public class User : BaseEntity
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Age { get; set; }
-    public string Score { get; set; }
-    public string Active { get; set; }
-    public string Country { get; set; }
-    public Team Team { get; set; }
-    public Log[] Logs { get; set; }
+    public string? Nome { get; set; }
+    public int? Idade { get; set; }
+    public int? Score { get; set; }
+    public bool? Ativo { get; set; }
+    public string? Pais { get; set; }
+    public Equipe? Equipe { get; set; }
+    public List<Log> Logs { get; set; } = [];
 }
 
-public class Team
+public class Equipe : BaseEntity
 {
-    public string Name { get; set; }
-    public string Leader { get; set; }
-    public Project[] Projects { get; set; }
+    public string? Nome { get; set; }
+    public bool? Lider { get; set; }
+    public List<Projeto> Projetos { get; set; } = [];
 }
 
-public class Project
+public class Projeto : BaseEntity
 {
-    public string Name { get; set; }
-    public string Completed { get; set; }
+    public string? Nome { get; set; }
+    public bool? Concluido { get; set; }
 }
 
-public class Log
+public class Log : BaseEntity
 {
-    public string Date { get; set; }
-    public string Action { get; set; }
+    public DateTime? Data { get; set; }
+    public string? Acao { get; set; }
 }
 
