@@ -1,4 +1,5 @@
 
+using JsonChallenge.Domain.Entities.Users;
 using JsonChallenge.Web.Data;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,8 @@ namespace JsonChallenge.Web
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>();
-
+            builder.Services.AddMemoryCache();
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
             builder.Services.Configure<KestrelServerOptions>(options =>
             {
                 options.Limits.MaxRequestBodySize = int.MaxValue;

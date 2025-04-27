@@ -13,6 +13,8 @@ using AutoMapper;
 using System.Text.Json;
 using AutoMapper.QueryableExtensions;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace JsonChallenge.Web.Controllers
 {
@@ -22,11 +24,14 @@ namespace JsonChallenge.Web.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache memoryCache;
+        private readonly string _key = "users";
 
-        public UsersController(ApplicationDbContext context, IMapper mapper)
+        public UsersController(ApplicationDbContext context, IMapper mapper, IMemoryCache memoryCache)
         {
             _context = context;
             _mapper=mapper;
+            this.memoryCache=memoryCache;
         }
 
         // POST: api/Users
@@ -39,19 +44,23 @@ namespace JsonChallenge.Web.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("Arquivo inválido");
 
-            using var stream = new StreamReader(file.OpenReadStream());
-            var json = await stream.ReadToEndAsync();
-
-            var dto = JsonSerializer.Deserialize<List<UserDto>>(json, new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            });
+            };
 
-            var users = _mapper.Map<List<User>>(dto);
-            await _context.Usuarios.AddRangeAsync(users);
-            await _context.SaveChangesAsync();
-            //await _context.Usuarios.BulkInsertOptimizedAsync(users);
 
+            using var stream = file.OpenReadStream();
+
+            List<User> users = new List<User>();
+
+            await foreach (var user in JsonSerializer.DeserializeAsyncEnumerable<User>(stream, options))
+            {
+                if (user != null)
+                    users.Add(user);
+            }
+
+            memoryCache.Set(_key, users);
 
             sw.Stop();
 
@@ -69,15 +78,14 @@ namespace JsonChallenge.Web.Controllers
         {
             var sw = Stopwatch.StartNew();
 
-            var result = await _context.Usuarios
-                .Where(u => u.Score >= 900 & u.Ativo == true)
-                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            var result = memoryCache.Get<List<User>>(_key)
+             .AsParallel()
+             .Where(u => u.Score >= 900 && u.Ativo);
 
             sw.Stop();
 
-            return Ok(new ApiResponseWithData<List<UserDto>>() { 
-                Data = result,
+            return Ok(new ApiResponseWithData<dynamic>() { 
+                Data = result.Take(100),
                 ExecutationTimeMs = sw.ElapsedMilliseconds,
                 TimeStamp = DateTime.UtcNow 
             });
@@ -89,13 +97,12 @@ namespace JsonChallenge.Web.Controllers
         {
             var sw = Stopwatch.StartNew();
 
-            var result = await _context.Usuarios
+            var result = memoryCache.Get<List<User>>(_key)
+                .AsParallel()
                 .Where(u => u.Score >= 900 & u.Ativo == true)
                 .GroupBy(u => u.Pais)
                 .Select(g => new { Pais = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .Take(5)
-                .ToListAsync();
+                .OrderByDescending(x => x.Count);
 
             sw.Stop();
 
@@ -112,7 +119,8 @@ namespace JsonChallenge.Web.Controllers
         {
             var sw = Stopwatch.StartNew();
 
-            var result = await _context.Usuarios
+            var result = memoryCache.Get<List<User>>(_key)
+                .AsParallel()
                 .GroupBy(u => u.Equipe.Nome)
                 .Select(g => new
                 {
@@ -122,8 +130,7 @@ namespace JsonChallenge.Web.Controllers
                     CompletedProjects = g.Sum(u => u.Equipe.Projetos.Count(p => p.Concluido == true)),
                     TotalProjects = g.Sum(u => u.Equipe.Projetos.Count()),
                     ActivePorcentage = ((double)g.Sum(u => u.Equipe.Projetos.Count(p => p.Concluido == true)) / g.Sum(u => u.Equipe.Projetos.Count())) * 100
-                })
-                .ToListAsync();
+                });
 
             sw.Stop();
 
@@ -141,7 +148,8 @@ namespace JsonChallenge.Web.Controllers
         {
             var sw = Stopwatch.StartNew();
 
-            var result = await _context.Usuarios
+            var result = memoryCache.Get<List<User>>(_key)
+                .AsParallel()
                 .SelectMany(u => u.Logs)
                 .Where(l => l.Acao == "login")
                 .GroupBy(l => l.Data)
@@ -150,8 +158,7 @@ namespace JsonChallenge.Web.Controllers
                     Date = g.Key,
                     Total = g.Count()
                 })
-                .OrderByDescending(l => l.Date)
-                .ToListAsync();
+                .OrderByDescending(l => l.Date);
 
             sw.Stop();
 
